@@ -9,7 +9,7 @@ bucket = "arturo-stac-api-test-data"
 app_host = "http://app:8081"
 
 
-def ingest_joplin_data(data_dir="/app/tests/data/joplin"):
+def ingest_joplin_data(data_dir="/app/stac_fastapi/sqlalchemy/tests/data/joplin"):
     """ingest data."""
 
     with open(os.path.join(data_dir, "collection.json")) as f:
