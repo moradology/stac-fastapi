@@ -52,24 +52,24 @@ class CoreCrudClient(BaseCoreClient):
                     rel=Relations.docs,
                     type=MimeTypes.html,
                     title="OpenAPI docs",
-                    href=urljoin(base_url, "/docs"),
+                    href=urljoin(base_url, "docs"),
                 ),
                 Link(
                     rel=Relations.conformance,
                     type=MimeTypes.json,
                     title="STAC/WFS3 conformance classes implemented by this server",
-                    href=urljoin(base_url, "/conformance"),
+                    href=urljoin(base_url, "conformance"),
                 ),
                 Link(
                     rel=Relations.search,
                     type=MimeTypes.geojson,
                     title="STAC search",
-                    href=urljoin(base_url, "/search"),
+                    href=urljoin(base_url, "search"),
                 ),
                 Link(
                     rel="data",
                     type=MimeTypes.json,
-                    href=urljoin(base_url, "/collections"),
+                    href=urljoin(base_url, "collections"),
                 ),
             ],
         )
