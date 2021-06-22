@@ -24,6 +24,10 @@ NumType = Union[float, int]
 class CoreCrudClient(BaseCoreClient):
     """Client for core endpoints defined by stac."""
 
+    landing_page_id: str = attr.ib(default="stac-api")
+    title: str = attr.ib(default="Arturo STAC API")
+    description: str = attr.ib(default="Arturo raster datastore")
+
     async def landing_page(self, **kwargs) -> ORJSONResponse:
         """Landing page.
 
@@ -35,8 +39,9 @@ class CoreCrudClient(BaseCoreClient):
         request = kwargs["request"]
         base_url = str(request.base_url)
         landing_page = LandingPage(
-            title="Arturo STAC API",
-            description="Arturo raster datastore",
+            id=self.landing_page_id,
+            title=self.title,
+            description=self.description,
             links=[
                 Link(
                     rel=Relations.self,
