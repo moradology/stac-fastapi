@@ -46,7 +46,7 @@ class CoreCrudClient(BaseCoreClient):
                 Link(
                     rel=Relations.self,
                     type=MimeTypes.json,
-                    href=str(base_url),
+                    href=base_url,
                 ),
                 Link(
                     rel=Relations.docs,
