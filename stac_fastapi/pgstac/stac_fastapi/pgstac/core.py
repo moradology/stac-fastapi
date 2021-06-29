@@ -119,7 +119,7 @@ class CoreCrudClient(BaseCoreClient):
         collections = await self._all_collections_func(**kwargs)
         if collections is None or len(collections) < 1:
             return ORJSONResponse([])
-        return ORJSONResponse([c.dict(exclude_none=True) for c in collections])
+        return ORJSONResponse({"collections": [c.dict(exclude_none=True) for c in collections], "links": []})
 
     async def get_collection(self, id: str, **kwargs) -> ORJSONResponse:
         """Get collection by id.
