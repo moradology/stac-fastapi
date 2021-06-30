@@ -10,7 +10,8 @@ from buildpg import render
 from fastapi.responses import ORJSONResponse
 from stac_pydantic import Collection, Item, ItemCollection
 from stac_pydantic.api import ConformanceClasses, LandingPage
-from stac_pydantic.shared import Link, MimeTypes, Relations
+from stac_pydantic.links import Link, Relations
+from stac_pydantic.shared import MimeTypes
 
 from stac_fastapi.pgstac.models.links import CollectionLinks, ItemLinks, PagingLinks
 from stac_fastapi.pgstac.types.search import PgstacSearch
@@ -42,6 +43,10 @@ class CoreCrudClient(BaseCoreClient):
             id=self.landing_page_id,
             title=self.title,
             description=self.description,
+            conformsTo=[
+                "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
+                "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson"
+            ],
             links=[
                 Link(
                     rel=Relations.self,
