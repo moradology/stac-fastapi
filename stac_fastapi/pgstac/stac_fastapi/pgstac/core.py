@@ -119,10 +119,30 @@ class CoreCrudClient(BaseCoreClient):
 
     async def all_collections(self, **kwargs) -> ORJSONResponse:
         """Get all collections."""
+        request = kwargs["request"]
+        base_url = str(request.base_url)
+        url = str(request.url)
         collections = await self._all_collections_func(**kwargs)
+        links = [
+            Link(
+                rel=Relations.self,
+                type=MimeTypes.json,
+                href=url,
+            ),
+            Link(
+                rel=Relations.parent,
+                type=MimeTypes.json,
+                href=base_url,
+            ),
+            Link(
+                rel=Relations.root,
+                type=MimeTypes.json,
+                href=base_url
+            )
+        ]
         if collections is None or len(collections) < 1:
-            return ORJSONResponse([])
-        return ORJSONResponse({"collections": [c.dict(exclude_none=True) for c in collections], "links": []})
+            return ORJSONResponse({"collections": [], "links": [l.dict(exclude_none=True) for l in links]})
+        return ORJSONResponse({"collections": [c.dict(exclude_none=True) for c in collections], "links": [l.dict(exclude_none=True) for l in links]})
 
     async def get_collection(self, id: str, **kwargs) -> ORJSONResponse:
         """Get collection by id.
