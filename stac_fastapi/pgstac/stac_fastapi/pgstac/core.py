@@ -29,6 +29,11 @@ class CoreCrudClient(BaseCoreClient):
     title: str = attr.ib(default="Arturo STAC API")
     description: str = attr.ib(default="Arturo raster datastore")
 
+    conformance = [
+        "https://stacspec.org/STAC-api.html",
+        "http://docs.opengeospatial.org/is/17-069r3/17-069r3.html#ats_geojson"
+    ]
+
     async def landing_page(self, **kwargs) -> ORJSONResponse:
         """Landing page.
 
@@ -43,10 +48,7 @@ class CoreCrudClient(BaseCoreClient):
             id=self.landing_page_id,
             title=self.title,
             description=self.description,
-            conformsTo=[
-                "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
-                "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson"
-            ],
+            conformsTo=self.conformance,
             links=[
                 Link(
                     rel=Relations.self,
@@ -92,10 +94,7 @@ class CoreCrudClient(BaseCoreClient):
     async def conformance(self, **kwargs) -> ConformanceClasses:
         """Conformance classes."""
         return ConformanceClasses(
-            conformsTo=[
-                "https://stacspec.org/STAC-api.html",
-                "http://docs.opengeospatial.org/is/17-069r3/17-069r3.html#ats_geojson",
-            ]
+            conformsTo=self.conformance
         )
 
     async def _all_collections_func(self, **kwargs) -> List[Dict]:
