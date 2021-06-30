@@ -28,7 +28,7 @@ class CoreCrudClient(BaseCoreClient):
     landing_page_id: str = attr.ib(default="stac-api")
     title: str = attr.ib(default="Arturo STAC API")
     description: str = attr.ib(default="Arturo raster datastore")
-    conformance: List[str] = attr.ib(factory=lambda: [
+    conformance_classes: List[str] = attr.ib(factory=lambda: [
         "https://stacspec.org/STAC-api.html",
         "http://docs.opengeospatial.org/is/17-069r3/17-069r3.html#ats_geojson"
     ])
@@ -47,7 +47,7 @@ class CoreCrudClient(BaseCoreClient):
             id=self.landing_page_id,
             title=self.title,
             description=self.description,
-            conformsTo=self.conformance,
+            conformsTo=self.conformance_classes,
             links=[
                 Link(
                     rel=Relations.self,
@@ -93,7 +93,7 @@ class CoreCrudClient(BaseCoreClient):
     async def conformance(self, **kwargs) -> ConformanceClasses:
         """Conformance classes."""
         return ConformanceClasses(
-            conformsTo=self.conformance
+            conformsTo=self.conformance_classes
         )
 
     async def _all_collections_func(self, **kwargs) -> List[Dict]:
