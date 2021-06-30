@@ -146,7 +146,6 @@ class CoreCrudClient(BaseCoreClient):
         Returns:
             Collection.
         """
-        request = kwargs["request"]
         pool = kwargs["request"].app.state.readpool
         async with pool.acquire() as conn:
             q, p = render(
