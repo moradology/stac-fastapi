@@ -28,7 +28,7 @@ class CoreCrudClient(BaseCoreClient):
     landing_page_id: str = attr.ib(default="stac-api")
     title: str = attr.ib(default="Arturo STAC API")
     description: str = attr.ib(default="Arturo raster datastore")
-    conformance: List[str] = attr.ib(default=[
+    conformance: List[str] = attr.ib(factory=lambda: [
         "https://stacspec.org/STAC-api.html",
         "http://docs.opengeospatial.org/is/17-069r3/17-069r3.html#ats_geojson"
     ])
