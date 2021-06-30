@@ -96,7 +96,7 @@ class CoreCrudClient(BaseCoreClient):
             conformsTo=self.conformance_classes
         )
 
-    async def _all_collections_func(self, **kwargs) -> List[Dict]:
+    async def _all_collections_func(self, **kwargs) -> List[Collection]:
         """Read all collections from the database."""
         request = kwargs["request"]
         pool = request.app.state.readpool
