@@ -8,10 +8,7 @@ from stac_pydantic import Collection
 async def test_create_collection(app_client, load_test_data: Callable):
     in_json = load_test_data("test_collection.json")
     in_coll = Collection.parse_obj(in_json)
-    resp = await app_client.post(
-        "/collections",
-        json=in_json,
-    )
+    resp = await app_client.post("/collections", json=in_json,)
     assert resp.status_code == 200
     post_coll = Collection.parse_obj(resp.json())
     assert in_coll.dict(exclude={"links"}) == post_coll.dict(exclude={"links"})
@@ -54,23 +51,15 @@ async def test_delete_collection(
 async def test_create_collection_conflict(app_client, load_test_data: Callable):
     in_json = load_test_data("test_collection.json")
     Collection.parse_obj(in_json)
-    resp = await app_client.post(
-        "/collections",
-        json=in_json,
-    )
+    resp = await app_client.post("/collections", json=in_json,)
     assert resp.status_code == 200
     Collection.parse_obj(resp.json())
-    resp = await app_client.post(
-        "/collections",
-        json=in_json,
-    )
+    resp = await app_client.post("/collections", json=in_json,)
     assert resp.status_code == 409
 
 
 @pytest.mark.asyncio
-async def test_delete_missing_collection(
-    app_client,
-):
+async def test_delete_missing_collection(app_client,):
     resp = await app_client.delete("/collections")
     assert resp.status_code == 405
 
@@ -85,8 +74,6 @@ async def test_update_new_collection(app_client, load_test_collection):
 
 
 @pytest.mark.asyncio
-async def test_nocollections(
-    app_client,
-):
+async def test_nocollections(app_client,):
     resp = await app_client.get("/collections")
     assert resp.status_code == 200

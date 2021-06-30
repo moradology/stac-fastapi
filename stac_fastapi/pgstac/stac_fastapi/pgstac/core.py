@@ -28,10 +28,12 @@ class CoreCrudClient(BaseCoreClient):
     landing_page_id: str = attr.ib(default="stac-api")
     title: str = attr.ib(default="Arturo STAC API")
     description: str = attr.ib(default="Arturo raster datastore")
-    conformance_classes: List[str] = attr.ib(factory=lambda: [
-        "https://stacspec.org/STAC-api.html",
-        "http://docs.opengeospatial.org/is/17-069r3/17-069r3.html#ats_geojson"
-    ])
+    conformance_classes: List[str] = attr.ib(
+        factory=lambda: [
+            "https://stacspec.org/STAC-api.html",
+            "http://docs.opengeospatial.org/is/17-069r3/17-069r3.html#ats_geojson",
+        ]
+    )
 
     async def landing_page(self, **kwargs) -> ORJSONResponse:
         """Landing page.
@@ -49,11 +51,7 @@ class CoreCrudClient(BaseCoreClient):
             description=self.description,
             conformsTo=self.conformance_classes,
             links=[
-                Link(
-                    rel=Relations.self,
-                    type=MimeTypes.json,
-                    href=base_url,
-                ),
+                Link(rel=Relations.self, type=MimeTypes.json, href=base_url,),
                 Link(
                     rel=Relations.docs,
                     type=MimeTypes.html,
@@ -92,9 +90,7 @@ class CoreCrudClient(BaseCoreClient):
 
     async def conformance(self, **kwargs) -> ConformanceClasses:
         """Conformance classes."""
-        return ConformanceClasses(
-            conformsTo=self.conformance_classes
-        )
+        return ConformanceClasses(conformsTo=self.conformance_classes)
 
     async def _all_collections_func(self, **kwargs) -> List[Collection]:
         """Read all collections from the database."""
@@ -124,27 +120,22 @@ class CoreCrudClient(BaseCoreClient):
         url = str(request.url)
         collections = await self._all_collections_func(**kwargs)
         links = [
-            Link(
-                rel=Relations.self,
-                type=MimeTypes.json,
-                href=url,
-            ),
-            Link(
-                rel=Relations.parent,
-                type=MimeTypes.json,
-                href=base_url,
-            ),
-            Link(
-                rel=Relations.root,
-                type=MimeTypes.json,
-                href=base_url
-            )
+            Link(rel=Relations.self, type=MimeTypes.json, href=url,),
+            Link(rel=Relations.parent, type=MimeTypes.json, href=base_url,),
+            Link(rel=Relations.root, type=MimeTypes.json, href=base_url),
         ]
         if collections is None or len(collections) < 1:
-            return ORJSONResponse({"collections": [], "links": [l.dict(exclude_none=True) for l in links]})
-        return ORJSONResponse({"collections": [c.dict(exclude_none=True) for c in collections], "links": [l.dict(exclude_none=True) for l in links]})
+            return ORJSONResponse(
+                {"collections": [], "links": [l.dict(exclude_none=True) for l in links]}
+            )
+        return ORJSONResponse(
+            {
+                "collections": [c.dict(exclude_none=True) for c in collections],
+                "links": [l.dict(exclude_none=True) for l in links],
+            }
+        )
 
-    async def get_collection(self, id: str, **kwargs) -> ORJSONResponse:
+    async def _get_single_collection(self, id: str, **kwargs) -> Collection:
         """Get collection by id.
 
         Called with `GET /collections/{collectionId}`.
@@ -167,11 +158,24 @@ class CoreCrudClient(BaseCoreClient):
             collection = await conn.fetchval(q, *p)
         if collection is None:
             raise NotFoundError
+        return Collection.construct(**collection)
+
+    async def get_collection(self, id: str, **kwargs) -> ORJSONResponse:
+        """Get collection by id.
+
+        Called with `GET /collections/{collectionId}`.
+
+        Args:
+            id: Id of the collection.
+
+        Returns:
+            Collection dict.
+        """
+        request = kwargs["request"]
+        collection = await self._get_single_collection(id, **kwargs)
         links = await CollectionLinks(collection_id=id, request=request).get_links()
-        collection["links"] = links
-        return ORJSONResponse(
-            Collection.construct(**collection).dict(exclude_none=True)
-        )
+        collection.links = links
+        return ORJSONResponse(collection.dict(exclude_none=True))
 
     async def _search_base(
         self, search_request: PgstacSearch, **kwargs
@@ -222,15 +226,11 @@ class CoreCrudClient(BaseCoreClient):
                 include = search_request.fields.include
                 if len(include) == 0:
                     include = None
-                feature = feature.dict(
-                    exclude_none=True,
-                )
+                feature = feature.dict(exclude_none=True,)
             cleaned_features.append(feature)
             collection.features = cleaned_features
         collection.links = await PagingLinks(
-            request=request,
-            next=next,
-            prev=prev,
+            request=request, next=next, prev=prev,
         ).get_links()
         return collection
 

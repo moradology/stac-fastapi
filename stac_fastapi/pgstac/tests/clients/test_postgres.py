@@ -11,10 +11,7 @@ from stac_pydantic import Collection, Item
 async def test_create_collection(app_client, load_test_data: Callable):
     in_json = load_test_data("test_collection.json")
     in_coll = Collection.parse_obj(in_json)
-    resp = await app_client.post(
-        "/collections",
-        json=in_json,
-    )
+    resp = await app_client.post("/collections", json=in_json,)
     assert resp.status_code == 200
     post_coll = Collection.parse_obj(resp.json())
     assert in_coll.dict(exclude={"links"}) == post_coll.dict(exclude={"links"})
@@ -57,10 +54,7 @@ async def test_create_item(app_client, load_test_data: Callable, load_test_colle
 
     in_json = load_test_data("test_item.json")
     in_item = Item.parse_obj(in_json)
-    resp = await app_client.post(
-        "/collections/{coll.id}/items",
-        json=in_json,
-    )
+    resp = await app_client.post("/collections/{coll.id}/items", json=in_json,)
     assert resp.status_code == 200
 
     post_item = Item.parse_obj(resp.json())
@@ -111,15 +105,10 @@ async def test_get_collection_items(app_client, load_test_collection, load_test_
 
     for _ in range(4):
         item.id = str(uuid.uuid4())
-        resp = await app_client.post(
-            f"/collections/{coll.id}/items",
-            json=item.dict(),
-        )
+        resp = await app_client.post(f"/collections/{coll.id}/items", json=item.dict(),)
         assert resp.status_code == 200
 
-    resp = await app_client.get(
-        f"/collections/{coll.id}/items",
-    )
+    resp = await app_client.get(f"/collections/{coll.id}/items",)
     assert resp.status_code == 200
     fc = resp.json()
     assert "features" in fc

@@ -49,8 +49,7 @@ def create_endpoint(
         else:
 
             def _endpoint(
-                request: Request,
-                request_data: request_model,  # type:ignore
+                request: Request, request_data: request_model,  # type:ignore
             ):
                 """Endpoint."""
                 resp = func(request_data, request=request)
@@ -73,8 +72,7 @@ def create_endpoint(
         else:
 
             async def _endpoint(
-                request: Request,
-                request_data: request_model,  # type:ignore
+                request: Request, request_data: request_model,  # type:ignore
             ):
                 """Endpoint."""
                 resp = await func(request_data, request=request)

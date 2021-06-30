@@ -127,10 +127,7 @@ def load_test_data() -> Callable[[str], Dict]:
 @pytest.fixture
 async def load_test_collection(app_client, load_test_data):
     data = load_test_data("test_collection.json")
-    resp = await app_client.post(
-        "/collections",
-        json=data,
-    )
+    resp = await app_client.post("/collections", json=data,)
     assert resp.status_code == 200
     return Collection.parse_obj(resp.json())
 
@@ -138,9 +135,6 @@ async def load_test_collection(app_client, load_test_data):
 @pytest.fixture
 async def load_test_item(app_client, load_test_data, load_test_collection):
     data = load_test_data("test_item.json")
-    resp = await app_client.post(
-        "/collections/{coll.id}/items",
-        json=data,
-    )
+    resp = await app_client.post("/collections/{coll.id}/items", json=data,)
     assert resp.status_code == 200
     return Item.parse_obj(resp.json())

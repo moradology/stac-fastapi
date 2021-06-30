@@ -4,8 +4,8 @@ from typing import Dict, List, Union
 from urllib.parse import ParseResult, parse_qs, unquote, urlencode, urljoin, urlparse
 
 import attr
+from stac_pydantic.links import Link, PaginationLink, Relations
 from stac_pydantic.shared import MimeTypes
-from stac_pydantic.links import Link, Relations, PaginationLink
 from starlette.requests import Request
 
 from stac_fastapi.extensions.third_party.tiles import OGCTileLink
@@ -112,10 +112,7 @@ class PagingLinks(BaseLinks):
             if method == "GET":
                 href = merge_params(self.url, {"token": f"next:{self.next}"})
                 link = PaginationLink(
-                    rel=Relations.next,
-                    type=MimeTypes.json,
-                    method=method,
-                    href=href,
+                    rel=Relations.next, type=MimeTypes.json, method=method, href=href,
                 )
                 return link
             if method == "POST":
@@ -178,11 +175,7 @@ class CollectionLinks(CollectionLinksBase):
 
     def link_parent(self) -> Link:
         """Create the `parent` link."""
-        return Link(
-            rel=Relations.parent,
-            type=MimeTypes.json,
-            href=self.base_url,
-        )
+        return Link(rel=Relations.parent, type=MimeTypes.json, href=self.base_url,)
 
     def link_items(self) -> Link:
         """Create the `item` link."""
@@ -204,9 +197,7 @@ class ItemLinks(CollectionLinksBase):
         return Link(
             rel=Relations.self,
             type=MimeTypes.geojson,
-            href=self.resolve(
-                f"collections/{self.collection_id}/items/{self.item_id}"
-            ),
+            href=self.resolve(f"collections/{self.collection_id}/items/{self.item_id}"),
         )
 
     def link_parent(self) -> Link:
@@ -240,8 +231,7 @@ class TileLinks:
     def __post_init__(self):
         """Post init handler."""
         self.item_uri = urljoin(
-            self.base_url,
-            f"collections/{self.collection_id}/items/{self.item_id}",
+            self.base_url, f"collections/{self.collection_id}/items/{self.item_id}",
         )
 
     def link_tiles(self) -> OGCTileLink:
@@ -279,8 +269,7 @@ class TileLinks:
         """Create wmts capabilities link."""
         return OGCTileLink(
             href=urljoin(
-                self.base_url,
-                f"titiler/WMTSCapabilities.xml?url={self.item_uri}",
+                self.base_url, f"titiler/WMTSCapabilities.xml?url={self.item_uri}",
             ),
             rel=Relations.alternate,
             type=MimeTypes.xml,

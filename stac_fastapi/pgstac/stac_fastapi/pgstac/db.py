@@ -19,16 +19,10 @@ from stac_fastapi.types.errors import (
 async def con_init(conn):
     """Use orjson for json returns."""
     await conn.set_type_codec(
-        "json",
-        encoder=orjson.dumps,
-        decoder=orjson.loads,
-        schema="pg_catalog",
+        "json", encoder=orjson.dumps, decoder=orjson.loads, schema="pg_catalog",
     )
     await conn.set_type_codec(
-        "jsonb",
-        encoder=orjson.dumps,
-        decoder=orjson.loads,
-        schema="pg_catalog",
+        "jsonb", encoder=orjson.dumps, decoder=orjson.loads, schema="pg_catalog",
     )
 
 
