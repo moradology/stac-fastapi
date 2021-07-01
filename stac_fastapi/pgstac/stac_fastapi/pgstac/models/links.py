@@ -4,11 +4,9 @@ from typing import Dict, List, Union
 from urllib.parse import ParseResult, parse_qs, unquote, urlencode, urljoin, urlparse
 
 import attr
-from stac_pydantic.links import Link, PaginationLink, Relations
+from stac_pydantic.links import Relations
 from stac_pydantic.shared import MimeTypes
 from starlette.requests import Request
-
-from stac_fastapi.extensions.third_party.tiles import OGCTileLink
 
 # These can be inferred from the item/collection so they aren't included in the database
 # Instead they are dynamically generated when querying the database using the classes defined below
@@ -58,27 +56,24 @@ class BaseLinks:
         """Resolve url to the current request url."""
         return urljoin(str(self.base_url), str(url))
 
-    def link_self(self) -> Link:
+    def link_self(self) -> Dict:
         """Return the self link."""
-        return Link(rel=Relations.self, type=MimeTypes.json, href=self.url)
+        return {"rel": Relations.self, "type": MimeTypes.json, "href": self.url}
 
-    def link_root(self) -> Link:
+    def link_root(self) -> Dict:
         """Return the catalog root."""
-        return Link(rel=Relations.root, type=MimeTypes.json, href=self.base_url)
+        return {"rel": Relations.root, "type": MimeTypes.json, "href": self.base_url}
 
-    def create_links(self) -> List[Union[PaginationLink, Link]]:
+    def create_links(self) -> List[Dict]:
         """Return all inferred links."""
         links = []
         for name in dir(self):
             if name.startswith("link_") and callable(getattr(self, name)):
                 link = getattr(self, name)()
-                if link is not None:
-                    links.append(link)
+                links.append(link)
         return links
 
-    async def get_links(
-        self, extra_links: List[Union[PaginationLink, Link]] = []
-    ) -> List[Union[PaginationLink, Link]]:
+    async def get_links(self, extra_links: List[Dict] = []) -> List[Dict]:
         """
         Generate all the links.
 
@@ -92,10 +87,8 @@ class BaseLinks:
         links = self.create_links()
         if extra_links is not None:
             for link in extra_links:
-                if type(link) is dict:
-                    link = Link.construct(**link)
-                if link.rel not in INFERRED_LINK_RELS:
-                    link.href = self.resolve(link.href)
+                if link["rel"] not in INFERRED_LINK_RELS:
+                    link["href"] = self.resolve(link["href"])
                     links.append(link)
         return links
 
@@ -107,49 +100,52 @@ class PagingLinks(BaseLinks):
     next: str = attr.ib(kw_only=True, default=None)
     prev: str = attr.ib(kw_only=True, default=None)
 
-    def link_next(self) -> PaginationLink:
+    def link_next(self) -> Dict:
         """Create link for next page."""
         if self.next is not None:
             method = self.request.method
             if method == "GET":
                 href = merge_params(self.url, {"token": f"next:{self.next}"})
-                link = PaginationLink(
-                    rel=Relations.next, type=MimeTypes.json, method=method, href=href,
-                )
+                link = {
+                    "rel": Relations.next,
+                    "type": MimeTypes.json,
+                    "method": method,
+                    "href": href,
+                }
                 return link
             if method == "POST":
                 body = self.request.postbody
                 body["token"] = f"next:{self.next}"
-                return PaginationLink(
-                    rel=Relations.next,
-                    type=MimeTypes.json,
-                    method=method,
-                    href=f"{self.request.url}",
-                    body=body,
-                )
+                return {
+                    "rel": Relations.next,
+                    "type": MimeTypes.json,
+                    "method": method,
+                    "href": f"{self.request.url}",
+                    "body": body,
+                }
 
-    def link_prev(self) -> PaginationLink:
+    def link_prev(self) -> Dict:
         """Create link for previous page."""
         if self.prev is not None:
             method = self.request.method
             if method == "GET":
                 href = merge_params(self.url, {"token": f"prev:{self.prev}"})
-                return PaginationLink(
-                    rel=Relations.previous,
-                    type=MimeTypes.json,
-                    method=method,
-                    href=href,
-                )
+                return {
+                    "rel": Relations.previous,
+                    "type": MimeTypes.json,
+                    "method": method,
+                    "href": href,
+                }
             if method == "POST":
                 body = self.request.postbody
                 body["token"] = f"prev:{self.prev}"
-                return PaginationLink(
-                    rel=Relations.previous,
-                    type=MimeTypes.json,
-                    method=method,
-                    href=f"{self.request.url}",
-                    body=body,
-                )
+                return {
+                    "rel": Relations.previous,
+                    "type": MimeTypes.json,
+                    "method": method,
+                    "href": f"{self.request.url}",
+                    "body": body,
+                }
 
 
 @attr.s
@@ -158,34 +154,34 @@ class CollectionLinksBase(BaseLinks):
 
     collection_id: str = attr.ib()
 
-    def collection_link(self, rel=Relations.collection) -> Link:
+    def collection_link(self, rel=Relations.collection) -> Dict:
         """Create a link to a collection."""
-        return Link(
-            rel=rel,
-            type=MimeTypes.json,
-            href=self.resolve(f"collections/{self.collection_id}"),
-        )
+        return {
+            "rel": rel,
+            "type": MimeTypes.json,
+            "href": self.resolve(f"collections/{self.collection_id}"),
+        }
 
 
 @attr.s
 class CollectionLinks(CollectionLinksBase):
     """Create inferred links specific to collections."""
 
-    def link_self(self) -> Link:
+    def link_self(self) -> Dict:
         """Return the self link."""
         return self.collection_link(rel=Relations.self)
 
-    def link_parent(self) -> Link:
+    def link_parent(self) -> Dict:
         """Create the `parent` link."""
-        return Link(rel=Relations.parent, type=MimeTypes.json, href=self.base_url,)
+        return {"rel": Relations.parent, "type": MimeTypes.json, "href": self.base_url}
 
-    def link_items(self) -> Link:
+    def link_items(self) -> Dict:
         """Create the `item` link."""
-        return Link(
-            rel="items",
-            type=MimeTypes.geojson,
-            href=self.resolve(f"collections/{self.collection_id}/items"),
-        )
+        return {
+            "rel": "items",
+            "type": MimeTypes.geojson,
+            "href": self.resolve(f"collections/{self.collection_id}/items"),
+        }
 
 
 @attr.s
@@ -194,32 +190,34 @@ class ItemLinks(CollectionLinksBase):
 
     item_id: str = attr.ib()
 
-    def link_self(self) -> Link:
+    def link_self(self) -> Dict:
         """Create the self link."""
-        return Link(
-            rel=Relations.self,
-            type=MimeTypes.geojson,
-            href=self.resolve(f"collections/{self.collection_id}/items/{self.item_id}"),
-        )
+        return {
+            "rel": Relations.self,
+            "type": MimeTypes.geojson,
+            "href": self.resolve(
+                f"collections/{self.collection_id}/items/{self.item_id}"
+            ),
+        }
 
-    def link_parent(self) -> Link:
+    def link_parent(self) -> Dict:
         """Create the `parent` link."""
         return self.collection_link(rel=Relations.parent)
 
-    def link_collection(self) -> Link:
+    def link_collection(self) -> Dict:
         """Create the `collection` link."""
         return self.collection_link()
 
-    def link_tiles(self) -> Link:
+    def link_tiles(self) -> Dict:
         """Create the `tiles` link."""
-        return Link(
-            rel=Relations.alternate,
-            type=MimeTypes.json,
-            title="tiles",
-            href=self.resolve(
+        return {
+            "rel": Relations.alternate,
+            "type": MimeTypes.json,
+            "title": "tiles",
+            "href": self.resolve(
                 f"collections/{self.collection_id}/items/{self.item_id}/tiles",
             ),
-        )
+        }
 
 
 @attr.s
@@ -236,44 +234,47 @@ class TileLinks:
             self.base_url, f"collections/{self.collection_id}/items/{self.item_id}",
         )
 
-    def link_tiles(self) -> OGCTileLink:
+    def link_tiles(self) -> Dict:
         """Create tiles link."""
-        return OGCTileLink(
-            href=urljoin(
+        return {
+            "href": urljoin(
                 self.base_url,
                 f"titiler/tiles/{{z}}/{{x}}/{{y}}.png?url={self.item_uri}",
             ),
-            rel=Relations.item,
-            title="tiles",
-            type=MimeTypes.png,
-            templated=True,
-        )
+            "rel": Relations.item,
+            "title": "tiles",
+            "type": MimeTypes.png,
+            "templated": True,
+        }
 
-    def link_viewer(self) -> OGCTileLink:
+    def link_viewer(self) -> Dict:
         """Create viewer link."""
-        return OGCTileLink(
-            href=urljoin(self.base_url, f"titiler/viewer?url={self.item_uri}"),
-            rel=Relations.alternate,
-            type=MimeTypes.html,
-            title="viewer",
-        )
+        return {
+            "href": urljoin(self.base_url, f"titiler/viewer?url={self.item_uri}"),
+            "rel": Relations.alternate,
+            "type": MimeTypes.html,
+            "title": "viewer",
+        }
 
-    def link_tilejson(self) -> OGCTileLink:
+    def link_tilejson(self) -> Dict:
         """Create tilejson link."""
-        return OGCTileLink(
-            href=urljoin(self.base_url, f"titiler/tilejson.json?url={self.item_uri}"),
-            rel=Relations.alternate,
-            type=MimeTypes.json,
-            title="tilejson",
-        )
+        return {
+            "href": urljoin(
+                self.base_url, f"titiler/tilejson.json?url={self.item_uri}"
+            ),
+            "rel": Relations.alternate,
+            "type": MimeTypes.json,
+            "title": "tilejson",
+        }
 
-    def link_wmts(self) -> OGCTileLink:
+    def link_wmts(self) -> Dict:
         """Create wmts capabilities link."""
-        return OGCTileLink(
-            href=urljoin(
+        return {
+            "href": urljoin(
                 self.base_url, f"titiler/WMTSCapabilities.xml?url={self.item_uri}",
             ),
-            rel=Relations.alternate,
-            type=MimeTypes.xml,
-            title="WMTS Capabilities",
-        )
+            "rel": Relations.alternate,
+            "type": MimeTypes.xml,
+            "title": "WMTS Capabilities",
+            "templated": False,
+        }
