@@ -107,9 +107,10 @@ class CoreCrudClient(BaseCoreClient):
         if collections is not None and len(collections) > 0:
             for c in collections:
                 coll = Collection.construct(**c)
-                coll.links = await CollectionLinks(
+                links = await CollectionLinks(
                     collection_id=coll.id, request=request
-                ).get_links()
+                ).get_links(extra_links=coll.links)
+                coll.links = links
                 linked_collections.append(coll)
         return linked_collections
 
@@ -172,7 +173,9 @@ class CoreCrudClient(BaseCoreClient):
         """
         request = kwargs["request"]
         collection = await self._get_single_collection(id, **kwargs)
-        links = await CollectionLinks(collection_id=id, request=request).get_links()
+        links = await CollectionLinks(collection_id=id, request=request).get_links(
+            extra_links=collection.links
+        )
         collection.links = links
         return ORJSONResponse(collection.dict(exclude_none=True))
 
@@ -217,7 +220,7 @@ class CoreCrudClient(BaseCoreClient):
                     collection_id=feature.collection,
                     item_id=feature.id,
                     request=request,
-                ).get_links()
+                ).get_links(extra_links=feature.links)
                 feature.links = links
                 exclude = search_request.fields.exclude
                 if len(exclude) == 0:
@@ -228,9 +231,10 @@ class CoreCrudClient(BaseCoreClient):
                 feature = feature.dict(exclude_none=True,)
             cleaned_features.append(feature)
             collection.features = cleaned_features
-        collection.links = await PagingLinks(
-            request=request, next=next, prev=prev,
-        ).get_links()
+        links = await PagingLinks(request=request, next=next, prev=prev,).get_links(
+            extra_links=collection.links
+        )
+        collection.links = links
         return collection
 
     async def item_collection(

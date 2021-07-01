@@ -90,8 +90,10 @@ class BaseLinks:
         # join passed in links with generated links
         # and update relative paths
         links = self.create_links()
-        if extra_links is not None and len(extra_links) >= 1:
+        if extra_links is not None:
             for link in extra_links:
+                if type(link) is dict:
+                    link = Link.construct(**link)
                 if link.rel not in INFERRED_LINK_RELS:
                     link.href = self.resolve(link.href)
                     links.append(link)
