@@ -93,7 +93,7 @@ class CoreCrudClient(BaseCoreClient):
         """Conformance classes."""
         return ConformanceClasses(conformsTo=self.conformance_classes)
 
-    async def _all_collections_func(self, **kwargs) -> List[Collection]:
+    async def _all_collections_func(self, **kwargs) -> List[Dict]:
         """Read all collections from the database."""
         request = kwargs["request"]
         pool = request.app.state.readpool
@@ -136,7 +136,7 @@ class CoreCrudClient(BaseCoreClient):
             }
         )
 
-    async def _get_single_collection(self, id: str, **kwargs) -> Collection:
+    async def _get_single_collection(self, id: str, **kwargs) -> Dict:
         """Get collection by id.
 
         Called with `GET /collections/{collectionId}`.
@@ -158,7 +158,7 @@ class CoreCrudClient(BaseCoreClient):
             collection = await conn.fetchval(q, *p)
         if collection is None:
             raise NotFoundError
-        return Collection.construct(**collection)
+        return collection
 
     async def get_collection(self, id: str, **kwargs) -> ORJSONResponse:
         """Get collection by id.
@@ -173,11 +173,11 @@ class CoreCrudClient(BaseCoreClient):
         """
         request = kwargs["request"]
         collection = await self._get_single_collection(id, **kwargs)
-        links = await CollectionLinks(collection_id=id, request=request).get_links(
-            extra_links=collection.links
+        links = await CollectionLinksDict(collection_id=id, request=request).get_links(
+            extra_links=collection["links"]
         )
-        collection.links = links
-        return ORJSONResponse(collection.dict(exclude_none=True))
+        collection["links"] = links
+        return ORJSONResponse(collection)
 
     async def _search_base(
         self, search_request: PgstacSearch, **kwargs
