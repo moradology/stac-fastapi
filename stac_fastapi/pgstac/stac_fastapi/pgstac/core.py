@@ -44,48 +44,49 @@ class CoreCrudClient(BaseCoreClient):
         """
         request = kwargs["request"]
         base_url = str(request.base_url)
-        landing_page = LandingPage(
-            id=self.landing_page_id,
-            title=self.title,
-            description=self.description,
-            conformsTo=self.conformance_classes,
-            links=[
-                Link(rel=Relations.self, type=MimeTypes.json, href=base_url,),
-                Link(
-                    rel=Relations.docs,
-                    type=MimeTypes.html,
-                    title="OpenAPI docs",
-                    href=urljoin(base_url, "docs"),
-                ),
-                Link(
-                    rel=Relations.conformance,
-                    type=MimeTypes.json,
-                    title="STAC/WFS3 conformance classes implemented by this server",
-                    href=urljoin(base_url, "conformance"),
-                ),
-                Link(
-                    rel=Relations.search,
-                    type=MimeTypes.geojson,
-                    title="STAC search",
-                    href=urljoin(base_url, "search"),
-                ),
-                Link(
-                    rel="data",
-                    type=MimeTypes.json,
-                    href=urljoin(base_url, "collections"),
-                ),
+        landing_page = {
+            "id": self.landing_page_id,
+            "title": self.title,
+            "description": self.description,
+            "conformsTo": self.conformance_classes,
+            "stac_version": "1.0.0",
+            "links": [
+                {"rel": Relations.self, "type": MimeTypes.json, "href": base_url,},
+                {
+                    "rel": Relations.docs,
+                    "type": MimeTypes.html,
+                    "title": "OpenAPI docs",
+                    "href": urljoin(base_url, "docs"),
+                },
+                {
+                    "rel": Relations.conformance,
+                    "type": MimeTypes.json,
+                    "title": "STAC/WFS3 conformance classes implemented by this server",
+                    "href": urljoin(base_url, "conformance"),
+                },
+                {
+                    "rel": Relations.search,
+                    "type": MimeTypes.geojson,
+                    "title": "STAC search",
+                    "href": urljoin(base_url, "search"),
+                },
+                {
+                    "rel": "data",
+                    "type": MimeTypes.json,
+                    "href": urljoin(base_url, "collections"),
+                },
             ],
-        )
+        }
         collections = await self._all_collections_func(request=request)
         if collections:
             for coll in collections:
                 coll_link = CollectionLinks(
-                    collection_id=coll.id, request=request
+                    collection_id=coll["id"], request=request
                 ).link_self()
-                coll_link.rel = Relations.child
-                coll_link.title = coll.title
-                landing_page.links.append(coll_link)
-        return ORJSONResponse(landing_page.dict(exclude_none=True))
+                coll_link["rel"] = Relations.child
+                coll_link["title"] = coll["title"]
+                landing_page["links"].append(coll_link)
+        return ORJSONResponse(landing_page)
 
     async def conformance(self, **kwargs) -> ConformanceClasses:
         """Conformance classes."""
