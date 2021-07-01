@@ -86,7 +86,7 @@ class BaseLinks:
         # and update relative paths
         links = self.create_links()
         if extra_links is not None:
-            for link in extra_links:
+            for link in [l for l in extra_links if l is not None]:
                 if link["rel"] not in INFERRED_LINK_RELS:
                     link["href"] = self.resolve(link["href"])
                     links.append(link)

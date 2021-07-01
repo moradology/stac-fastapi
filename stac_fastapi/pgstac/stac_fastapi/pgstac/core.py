@@ -8,8 +8,8 @@ import attr
 import orjson
 from buildpg import render
 from fastapi.responses import ORJSONResponse
-from stac_pydantic.api import ConformanceClasses, LandingPage
-from stac_pydantic.links import Link, Relations
+from stac_pydantic.api import ConformanceClasses
+from stac_pydantic.links import Relations
 from stac_pydantic.shared import MimeTypes
 
 from stac_fastapi.pgstac.models.links import CollectionLinks, ItemLinks, PagingLinks
@@ -84,7 +84,11 @@ class CoreCrudClient(BaseCoreClient):
                     collection_id=coll["id"], request=request
                 ).link_self()
                 coll_link["rel"] = Relations.child
-                coll_link["title"] = coll["title"]
+                import json
+
+                print(json.dumps(coll))
+                if "title" in coll:
+                    coll_link["title"] = coll["title"]
                 landing_page["links"].append(coll_link)
         return ORJSONResponse(landing_page)
 
@@ -215,7 +219,7 @@ class CoreCrudClient(BaseCoreClient):
             cleaned_features.append(feature)
         collection["features"] = cleaned_features
         links = await PagingLinks(request=request, next=next, prev=prev,).get_links(
-            extra_links=collection.links
+            extra_links=collection["links"]
         )
         collection["links"] = links
         return collection
@@ -239,7 +243,7 @@ class CoreCrudClient(BaseCoreClient):
         collection = await self._search_base(req, **kwargs)
         links = await CollectionLinks(
             collection_id=id, request=kwargs["request"]
-        ).get_links(extra_links=collection.links)
+        ).get_links(extra_links=collection["links"])
         collection["links"] = links
         return ORJSONResponse(collection)
 
