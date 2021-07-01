@@ -14,6 +14,7 @@ from stac_pydantic.links import Link, Relations
 from stac_pydantic.shared import MimeTypes
 
 from stac_fastapi.pgstac.models.links import CollectionLinks, ItemLinks, PagingLinks
+from stac_fastapi.pgstac.models.links_dict import CollectionLinks as CollectionLinksDict
 from stac_fastapi.pgstac.types.search import PgstacSearch
 from stac_fastapi.types.core import BaseCoreClient
 from stac_fastapi.types.errors import NotFoundError
@@ -104,13 +105,13 @@ class CoreCrudClient(BaseCoreClient):
                 """
             )
         linked_collections = []
-        if collections is not None and len(collections) > 0:
-            for c in collections:
-                coll = Collection.construct(**c)
-                links = await CollectionLinks(
+        if collections is not None:
+            for coll in collections:
+                print("A collection before construction", c)
+                links = await CollectionLinksDict(
                     collection_id=coll.id, request=request
                 ).get_links(extra_links=coll.links)
-                coll.links = links
+                coll["links"] = links
                 linked_collections.append(coll)
         return linked_collections
 
@@ -121,18 +122,18 @@ class CoreCrudClient(BaseCoreClient):
         url = str(request.url)
         collections = await self._all_collections_func(**kwargs)
         links = [
-            Link(rel=Relations.self, type=MimeTypes.json, href=url,),
-            Link(rel=Relations.parent, type=MimeTypes.json, href=base_url,),
-            Link(rel=Relations.root, type=MimeTypes.json, href=base_url),
+            {"rel":Relations.self, "type":MimeTypes.json, "href":url,},
+            {"rel":Relations.parent, "type":MimeTypes.json, "href":base_url,},
+            {"rel":Relations.root, "type":MimeTypes.json, "href":base_url}
         ]
-        if collections is None or len(collections) < 1:
+        if collections is None:
             return ORJSONResponse(
-                {"collections": [], "links": [l.dict(exclude_none=True) for l in links]}
+                {"collections": [], "links": links}
             )
         return ORJSONResponse(
             {
-                "collections": [c.dict(exclude_none=True) for c in collections],
-                "links": [l.dict(exclude_none=True) for l in links],
+                "collections": collections,
+                "links": links
             }
         )
 
