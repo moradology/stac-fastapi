@@ -136,17 +136,17 @@ class PagingLinks(BaseLinksDict):
                     "type":MimeTypes.json,
                     "method":method,
                     "href":href,
-                )
+                }
             if method == "POST":
                 body = self.request.postbody
                 body["token"] = f"prev:{self.prev}"
-                return PaginationLink(
+                return {
                     "rel":Relations.previous,
                     "type":MimeTypes.json,
                     "method":method,
                     "href":f"{self.request.url}",
                     "body":body,
-                )
+                }
 
 
 @attr.s

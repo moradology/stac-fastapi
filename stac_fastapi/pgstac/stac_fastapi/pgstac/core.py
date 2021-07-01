@@ -107,10 +107,9 @@ class CoreCrudClient(BaseCoreClient):
         linked_collections = []
         if collections is not None:
             for coll in collections:
-                print("A collection before construction", c)
                 links = await CollectionLinksDict(
-                    collection_id=coll.id, request=request
-                ).get_links(extra_links=coll.links)
+                    collection_id=coll["id"], request=request
+                ).get_links(extra_links=coll["links"])
                 coll["links"] = links
                 linked_collections.append(coll)
         return linked_collections
