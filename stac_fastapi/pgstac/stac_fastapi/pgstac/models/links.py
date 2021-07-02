@@ -90,7 +90,7 @@ class BaseLinks:
                 if link["rel"] not in INFERRED_LINK_RELS:
                     link["href"] = self.resolve(link["href"])
                     links.append(link)
-        return links
+        return [link for link in links if link]
 
 
 @attr.s
