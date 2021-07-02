@@ -114,14 +114,15 @@ class PagingLinks(BaseLinks):
                 }
                 return link
             if method == "POST":
-                body = self.request.postbody
-                body["token"] = f"next:{self.next}"
                 return {
                     "rel": Relations.next,
                     "type": MimeTypes.json,
                     "method": method,
                     "href": f"{self.request.url}",
-                    "body": body,
+                    "body": {
+                        **self.request.postbody,
+                        "token": f"next:{self.next}"
+                    }
                 }
 
     def link_prev(self) -> Dict:
@@ -137,14 +138,15 @@ class PagingLinks(BaseLinks):
                     "href": href,
                 }
             if method == "POST":
-                body = self.request.postbody
-                body["token"] = f"prev:{self.prev}"
                 return {
                     "rel": Relations.previous,
                     "type": MimeTypes.json,
                     "method": method,
                     "href": f"{self.request.url}",
-                    "body": body,
+                    "body": {
+                        **self.request.postbody,
+                        "token": f"prev:{self.prev}"
+                    },
                 }
 
 
