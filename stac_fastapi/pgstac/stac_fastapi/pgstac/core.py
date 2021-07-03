@@ -205,8 +205,6 @@ class CoreCrudClient(BaseCoreClient):
         next = collection.pop("next", None)
         prev = collection.pop("prev", None)
         cleaned_features = []
-        if collection["features"] is None or len(collection["features"]) == 0:
-            raise NotFoundError("No features found")
 
         for feature in collection["features"]:
             if "links" not in search_request.fields.exclude:
