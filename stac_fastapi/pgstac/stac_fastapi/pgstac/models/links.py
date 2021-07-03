@@ -210,17 +210,6 @@ class ItemLinks(CollectionLinksBase):
         """Create the `collection` link."""
         return self.collection_link()
 
-    def link_tiles(self) -> Dict:
-        """Create the `tiles` link."""
-        return {
-            "rel": Relations.alternate,
-            "type": MimeTypes.json,
-            "title": "tiles",
-            "href": self.resolve(
-                f"collections/{self.collection_id}/items/{self.item_id}/tiles",
-            ),
-        }
-
 
 @attr.s
 class TileLinks:
