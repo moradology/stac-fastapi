@@ -260,7 +260,12 @@ class CoreCrudClient(BaseCoreClient):
         """
         req = PgstacSearch(ids=[item_id], limit=1)
         collection = await self._search_base(req, **kwargs)
-        return ORJSONResponse(collection["features"][0])
+        item = next(iter(collection["features"]), None)
+        if item is None:
+            raise NotFoundError(
+                f"Not item found for collection {collection_id}: {item_id}"
+            )
+        return ORJSONResponse(item)
 
     async def post_search(
         self, search_request: PgstacSearch, **kwargs
